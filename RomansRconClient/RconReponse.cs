@@ -15,6 +15,7 @@ namespace RomansRconClient
         public int id;
 
         public RconResponseStatus status;
+        public Exception ex;
 
         public static RconResponse CreateOkayResponse(RconPacketType _type, int _id, byte[] _body)
         {
@@ -42,6 +43,15 @@ namespace RomansRconClient
             //Return
             return rr;
         }
+
+        public static RconResponse CreatFatalResponse(Exception _ex)
+        {
+            //Used when an item was created with an error.
+            RconResponse rr = new RconResponse();
+            rr.status = RconResponseStatus.FatalError;
+            rr.ex = _ex;
+            return rr;
+        }
     }
 
     public enum RconResponseStatus
@@ -49,6 +59,8 @@ namespace RomansRconClient
         Ok,
         Timeout,
         Failed,
-        KeepAliveError
+        ServerDisconnected,
+        KeepAliveError,
+        FatalError /*Fatal errors must be with an exception */
     }
 }

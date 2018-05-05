@@ -43,6 +43,7 @@
     <Compile Include="RconClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RconReponse.cs" />
+    <Compile Include="Tools.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

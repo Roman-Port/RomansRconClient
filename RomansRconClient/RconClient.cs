@@ -18,6 +18,9 @@ namespace RomansRconClient
         public Int32 serverPort;
         public string serverPassword;
 
+        public RconConnectionStatus status = RconConnectionStatus.Connected;
+        public Exception ex;
+
         //Networking
         private TcpClient client;
         private NetworkStream stream;
@@ -26,29 +29,52 @@ namespace RomansRconClient
 
         public static RconConnection ConnectToRcon(string ip, Int32 port, string password)
         {
-            //Main "constructor"
-            //Create the object
-            RconConnection rc = new RconConnection();
-            //Generate an ID
-            rc.connectionID = GenerateID();
-            //Set some values
-            rc.serverIP = ip;
-            rc.serverPort = port;
-            rc.serverPassword = password;
-            //Prepare network
-            rc.PrepareNetworking();
-            //Connect and authorize
-            rc.PrivateSendPacket(RconPacketType.SERVERDATA_AUTH, password); //Send a packet with the auth type. Include the password.
-            //Used for testing
             
-            return rc;
+            //Main way to create this object.
+
+            try
+            {
+                //Create the object
+                RconConnection rc = new RconConnection();
+                //Generate an ID
+                rc.connectionID = GenerateID();
+                //Set some values
+                rc.serverIP = ip;
+                rc.serverPort = port;
+                rc.serverPassword = password;
+                //Prepare network
+                rc.PrepareNetworking();
+                //Connect and authorize
+                rc.PrivateSendPacket(RconPacketType.SERVERDATA_AUTH, password); //Send a packet with the auth type. Include the password.
+                return rc;
+            }
+            catch (Exception ex)
+            {
+                RconConnection rc = new RconConnection();
+                rc.status = RconConnectionStatus.FatalError;
+                rc.ex = ex;
+                return rc;
+            }
         }
 
         //<Friendly functions>
         [Description("Send an RCON command to the server."), Category("Main Action")]
         public RconResponse SendCommand(string cmd, int timeout=900)
         {
-            return PrivateSendPacketAndGetResponse(RconPacketType.SERVERDATA_EXECCOMMAND_OR_SERVERDATA_AUTH_RESPONSE, cmd, timeout);
+            //Check if we're connected
+            if(status == RconConnectionStatus.Disconnected)
+            {
+                //Uh oh. Disconnected.
+                return RconResponse.CreateBadResponse(RconResponseStatus.ServerDisconnected);
+            }
+            //This function places everything in a try except.
+            try
+            {
+                return PrivateSendPacketAndGetResponse(RconPacketType.SERVERDATA_EXECCOMMAND_OR_SERVERDATA_AUTH_RESPONSE, cmd, timeout);
+            } catch (Exception ex)
+            {
+                return RconResponse.CreatFatalResponse(ex);
+            }
         }
 
 
@@ -66,6 +92,9 @@ namespace RomansRconClient
             //Get another stream
             networkWriter = new BinaryWriter(stream);
             networkReader = new BinaryReader(stream);
+            //Set status
+            bool connected = client.Connected;
+            status = (RconConnectionStatus)Tools.BoolToInt(!connected);
         }
 
         public void DisposeNetworking()
@@ -80,8 +109,7 @@ namespace RomansRconClient
         private static int GenerateID()
         {
             Random rand = new Random();
-            return 34;
-            return rand.Next(1, int.MaxValue);
+            return rand.Next(1, 99999);
         }
 
         private void PrivateSendPacket(RconPacketType type, string body)
@@ -248,5 +276,12 @@ namespace RomansRconClient
         NOT_USED,
         SERVERDATA_EXECCOMMAND_OR_SERVERDATA_AUTH_RESPONSE,
         SERVERDATA_AUTH
+    }
+
+    public enum RconConnectionStatus
+    {
+        Connected,
+        Disconnected,
+        FatalError /*Must have an exception*/
     }
 }
