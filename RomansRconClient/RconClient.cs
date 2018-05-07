@@ -62,10 +62,16 @@ namespace RomansRconClient
         public RconResponse SendCommand(string cmd, int timeout=900)
         {
             //Check if we're connected
-            if(status == RconConnectionStatus.Disconnected)
+            if(status != RconConnectionStatus.Connected)
             {
                 //Uh oh. Disconnected.
-                return RconResponse.CreateBadResponse(RconResponseStatus.ServerDisconnected);
+                //Try to reconnect.
+                PrepareNetworking();
+                if(status!= RconConnectionStatus.Connected)
+                {
+                    return RconResponse.CreateBadResponse(RconResponseStatus.ServerDisconnected);
+                }
+                //Reconnected! Connect...
             }
             //This function places everything in a try except.
             try

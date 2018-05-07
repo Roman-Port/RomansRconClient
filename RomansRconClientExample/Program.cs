@@ -12,17 +12,16 @@ namespace RomansRconClientExample
     {
         static void Main(string[] args)
         {
-
+            /*
             new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
-                /* run your code here */
                 ArkChatTest();
             }).Start();
-            Console.ReadLine();
-            return;
+            Console.ReadLine();s
+            return;*/
 
-            RconConnection rc = RconConnection.ConnectToRcon("10.0.1.13", 27020, "xdmeme"); //127.0.0.1
+            RconConnection rc = RconConnection.ConnectToRcon("10.0.1.13", 27020, ""); //127.0.0.1
             Console.WriteLine("connected");
             while (true)
             {
@@ -44,7 +43,7 @@ namespace RomansRconClientExample
         static void ArkChatTest()
         {
             //Connect, then spam.
-            RconConnection rc = RconConnection.ConnectToRcon("10.0.1.13", 27020, "xdmeme");
+            RconConnection rc = RconConnection.ConnectToRcon("10.0.1.13", 27020, "");
             Console.WriteLine("connected");
             Random rand = new Random();
             int good = 0;
